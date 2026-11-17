@@ -86,5 +86,6 @@ The bundle contributes one page to **Settings**, between Fonts and Market: `Conf
 ## Requirements and limits
 
 - The bundle needs a `confluence-cli` package to execute: its declared dependency, a surrounding checkout, `CONFLUENCE_CLI_ROOT`, or `packageRoot`. A missing one fails at activation with instructions. Run `npm install` in a cloned bundle so its dependencies exist.
+- On a machine without network access, run `node scripts/install-offline.mjs` instead: it verifies `deps/node_modules.tar.gz` and extracts it. Add the folder as a **local directory** plugin afterwards — the git address would run a package install.
 - A write that times out or is interrupted fails as `UNKNOWN_RESULT`: the plugin never retries it.
 - Deleting page versions requires the instance to allow it; that failure surfaces as `CLI_FAILED`.

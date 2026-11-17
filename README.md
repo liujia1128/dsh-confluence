@@ -43,6 +43,15 @@ npm install          # the bundle needs its own dependencies when linked
 
 then add the checkout directory as the plugin. A local directory install links the folder, so edits apply after a plugin reload.
 
+**Offline / air-gapped machine** — the runtime dependencies are committed to this repository, so no package install is needed:
+
+```bash
+# on the offline machine, from the repository folder
+node scripts/install-offline.mjs     # verifies deps/node_modules.tar.gz, extracts it
+```
+
+Then add **this directory** as the plugin (local directory install). Do not add the git address on an offline machine: that path runs a package install and needs the network. `npm run deps:pack` rebuilds the archive from `package-lock.json` after a dependency change; details in [deps/README.md](deps/README.md).
+
 ## Configure
 
 Open **Settings → Confluence** — the page this bundle contributes:
@@ -118,7 +127,15 @@ npm install
 npm test
 ```
 
-The suite covers configuration resolution, the tool surface, argument validation, read/write/bulk execution, approval wiring, the settings routes, and the client module contract (61 tests).
+The suite covers configuration resolution, the tool surface, argument validation, read/write/bulk execution, approval wiring, the settings routes, the client module contract, and the offline dependency archive (66 tests). CI runs `npm ci` + `npm test` on Node 20 / 22 / 24.
+
+After changing a dependency, rebuild the offline archive on a machine with network access:
+
+```bash
+npm run deps:pack     # rewrites deps/node_modules.tar.gz and deps/node_modules.sha256
+```
+
+Commit both files together — the checksum is what makes the archive trustworthy, and the tests fail when they disagree.
 
 | Path | Role |
 |---|---|
@@ -133,6 +150,8 @@ The suite covers configuration resolution, the tool surface, argument validation
 | `SKILL.md` | The `confluence` skill contributed at activation. |
 | `docs/DETAIL.md` | Longer configuration and behaviour notes shown in Plugin Manager. |
 | `locale/`, `icon.svg` | Plugin Manager display metadata. |
+| `deps/` | Committed runtime dependency archive and its checksum, for offline installs. |
+| `scripts/` | `deps:pack` rebuilds the archive; `deps:install` extracts it offline. |
 
 ## License
 

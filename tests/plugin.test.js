@@ -842,6 +842,57 @@ describe('client half', () => {
   });
 });
 
+describe('offline dependencies', () => {
+  const { createHash } = require('node:crypto');
+  const { spawnSync } = require('node:child_process');
+
+  const depsDir = path.join(DSH_ROOT, 'deps');
+  const archive = path.join(depsDir, 'node_modules.tar.gz');
+  const checksumFile = path.join(depsDir, 'node_modules.sha256');
+
+  const probes = [
+    'node_modules/confluence-cli/package.json',
+    'node_modules/confluence-cli/lib/pi/operation-policy.js',
+    'node_modules/@deepseek-ai/schemastery/package.json',
+  ];
+
+  test('ships a dependency archive with a matching checksum', () => {
+    expect(fs.existsSync(archive)).toBe(true);
+    expect(fs.existsSync(checksumFile)).toBe(true);
+
+    const expected = fs.readFileSync(checksumFile, 'utf8').trim().split(/\s+/)[0].toLowerCase();
+    const actual = createHash('sha256').update(fs.readFileSync(archive)).digest('hex');
+    expect(actual).toBe(expected);
+    expect(fs.statSync(archive).size).toBeLessThan(45 * 1024 * 1024);
+  });
+
+  test('archives the runtime packages the plugin resolves at activation', () => {
+    const listing = spawnSync('tar', ['-tzf', archive], { encoding: 'utf8' });
+    if (listing.error !== undefined) {
+      // No tar on PATH: the checksum above still guards the bytes.
+      expect(listing.error.code).toBeTruthy();
+      return;
+    }
+    expect(listing.status).toBe(0);
+
+    const entries = new Set(listing.stdout.split(/\r?\n/).map(line => line.trim()));
+    for (const probe of probes) {
+      expect(entries.has(probe)).toBe(true);
+    }
+  });
+
+  test('ships both dependency scripts', () => {
+    for (const script of ['pack-deps.mjs', 'install-offline.mjs']) {
+      const file = path.join(DSH_ROOT, 'scripts', script);
+      expect(fs.existsSync(file)).toBe(true);
+      expect(fs.readFileSync(file, 'utf8')).toContain('node_modules');
+    }
+    const manifest = JSON.parse(fs.readFileSync(path.join(DSH_ROOT, 'package.json'), 'utf8'));
+    expect(manifest.scripts['deps:install']).toBe('node scripts/install-offline.mjs');
+    expect(manifest.scripts['deps:pack']).toBe('node scripts/pack-deps.mjs');
+  });
+});
+
 describe('bundle assets', () => {  test('ships a skill body', () => {
   const content = fs.readFileSync(path.join(DSH_ROOT, 'SKILL.md'), 'utf8');
   expect(content.startsWith('# ')).toBe(true);

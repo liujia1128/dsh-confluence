@@ -82,6 +82,17 @@ npm install
 
 然后把该目录作为插件添加。本地目录安装是链接方式，改动后重载插件即生效。
 
+**方式 C：离线 / 内网机器**（装不了依赖的机器）
+
+运行时依赖已经提交在本仓库里（`deps/node_modules.tar.gz`，107 个生产依赖、无原生二进制），**不需要 npm**：
+
+```bash
+# 在离线机器的仓库目录里执行
+node scripts/install-offline.mjs     # 校验 deps/node_modules.tar.gz 并解压出 node_modules
+```
+
+然后把**这个目录**作为插件添加（本地目录方式）。离线机器不要用 git 地址添加——那条路径会跑包安装，需要联网。改了依赖之后在联网机器上执行 `npm run deps:pack` 重建归档并一起提交，细节见 [deps/README.md](deps/README.md)。
+
 装完还需要填站点与 token（设置页或 YAML），否则调用会返回 CLI 的「未找到配置」错误。
 
 ## 设置页
@@ -184,7 +195,15 @@ npm install
 npm test
 ```
 
-测试覆盖配置解析、工具面、参数校验、读/写/批量执行、审批接线、设置页路由、客户端模块契约，共 **63 项**；CI 在 Node 20 / 22 / 24 上跑 `npm ci` + `npm test`。
+测试覆盖配置解析、工具面、参数校验、读/写/批量执行、审批接线、设置页路由、客户端模块契约、离线依赖归档，共 **66 项**；CI 在 Node 20 / 22 / 24 上跑 `npm ci` + `npm test`。
+
+改了依赖之后重建离线归档（在联网机器上）：
+
+```bash
+npm run deps:pack     # 重新生成 deps/node_modules.tar.gz 与 deps/node_modules.sha256
+```
+
+两个文件必须一起提交——校验和是归档可信的依据；测试会在两者不一致时失败。
 
 | 路径 | 作用 |
 |---|---|
@@ -200,6 +219,8 @@ npm test
 | `docs/DETAIL.md` | 插件管理页展示的详细说明 |
 | `locale/`、`icon.svg` | 插件管理页显示元数据 |
 | `tests/plugin.test.js` | 测试 |
+| `deps/` | 离线安装用的运行时依赖归档 + 校验和 |
+| `scripts/` | `deps:pack`（重建归档）与 `deps:install`（离线解压） |
 
 ## 常见问题
 

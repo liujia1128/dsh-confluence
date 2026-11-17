@@ -37,7 +37,9 @@
     "jest": "^30.5.2"
   },
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "deps:pack": "node scripts/pack-deps.mjs",
+    "deps:install": "node scripts/install-offline.mjs"
   },
   "keywords": [
     "dsh",
