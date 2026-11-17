@@ -2,7 +2,7 @@
 
 A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) bundle that puts Atlassian Confluence into every DSH session: 29 typed `confluence_*` tools, a `confluence` skill, and a Settings page for the connection and the write policy.
 
-中文说明见 [readme_zh.txt](readme_zh.txt)。
+中文说明见 [README_ZH.md](README_ZH.md)（[纯文本版](readme_zh.txt)）。
 
 Every call is executed by [confluence-cli](https://github.com/pchuri/confluence-cli) in a child process, so authentication, rate limiting, Markdown↔storage conversion, and JSON envelopes behave exactly as they do in a terminal — and the CLI stays the single implementation of the Confluence API surface.
 
