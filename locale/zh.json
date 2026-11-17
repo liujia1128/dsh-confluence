@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "Confluence",
+    "description": "通过类型化工具读取、搜索、创建、更新、移动、删除和评论 Atlassian Confluence 页面、附件与内容属性；写操作需人工审批。",
+    "detail": "docs/DETAIL.md"
+  }
+}

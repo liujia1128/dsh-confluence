@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "Confluence",
+    "description": "Read, search, create, update, move, delete, and comment on Atlassian Confluence pages, attachments, and properties through typed tools with approval-gated writes.",
+    "detail": "docs/DETAIL.md"
+  }
+}

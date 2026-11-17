@@ -1,0 +1,31 @@
+# DeepSeek Harness bundle layer for the Confluence tool set.
+#
+# The row below is inserted by the bundle itself. Read access needs no
+# configuration once confluence-cli can reach the site (CONFLUENCE_* env,
+# ~/.config/confluence-cli/config.json, the macOS Keychain, or ~/.netrc).
+#
+# Everything below can also be edited from Settings → Confluence, which writes
+# this same row into the profile's own patch layer and applies it live. Writes
+# stay off until an allowed-space list exists:
+#
+#   - id: confluence
+#     name: dsh-plugin-confluence
+#     config:
+#       writes: true
+#       spaces: [ENG, DOCS]
+#       confirm: ask
+#       confluence:
+#         domain: company.atlassian.net
+#         apiPath: /wiki/rest/api
+#         authType: basic
+#         email: user@company.com
+#       env:
+#         CONFLUENCE_API_TOKEN: !!js process.env.CONFLUENCE_API_TOKEN
+#
+# A matching override replaces the whole `config`, so restate every key you
+# still want. The write surface is chosen at activation: reload the plugin after
+# changing `writes` or `spaces`.
+- insert:
+    - id: confluence
+      name: dsh-plugin-confluence
+      config: {}

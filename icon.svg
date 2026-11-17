@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36" role="img" aria-label="Confluence pages">
+  <defs>
+    <linearGradient id="confluencePageFill" x1="9" y1="5" x2="28" y2="31" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5b8def"/>
+      <stop offset="1" stop-color="#3d6ad4"/>
+    </linearGradient>
+  </defs>
+  <path d="M10.5 4.5h10.2L27 10.8v17.7a2.6 2.6 0 0 1-2.6 2.6H10.5a2.6 2.6 0 0 1-2.6-2.6V7.1a2.6 2.6 0 0 1 2.6-2.6z" fill="url(#confluencePageFill)"/>
+  <path d="M20.7 4.5 27 10.8h-4.4a1.9 1.9 0 0 1-1.9-1.9z" fill="#c7d9fa"/>
+  <g stroke="#ffffff" stroke-width="1.9" stroke-linecap="round" opacity="0.94">
+    <path d="M12.4 15.4h10.2"/>
+    <path d="M12.4 19.6h10.2"/>
+    <path d="M12.4 23.8h6.1"/>
+  </g>
+</svg>
