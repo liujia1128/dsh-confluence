@@ -294,7 +294,9 @@ window.__ModuleLoader__.load({
             const sample = Array.isArray(payload.sample) && payload.sample.length > 0 ? `（${payload.sample.join(', ')}）` : '';
             setStatus({ kind: 'ok', text: `${payload.message}${sample}` });
           } else {
-            setStatus({ kind: 'error', text: `${payload.code || 'CLI_FAILED'}: ${payload.message || ''}` });
+            const msg = payload.message || '';
+            const code = payload.code || 'CLI_FAILED';
+            setStatus({ kind: 'error', text: msg ? `${code}: ${msg}` : code });
           }
         } catch (error) {
           setStatus({ kind: 'error', text: String(error && error.message ? error.message : error) });
