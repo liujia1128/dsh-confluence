@@ -781,7 +781,7 @@ describe('settings routes', () => {
       configuration: () => [{
         entry: { options: { id: 'confluence', config: { siteUrl: 'https://x', token: 'secret', writes: true } } },
         inherited: {},
-        override: { writes: true },
+        override: { writes: true, token: 'secret-override' },
       }],
     };
     const state = routes.readState({ editor, env: {}, liveStatus: () => ({ tools: 29 }), logger: { warn: () => {} } });
@@ -791,6 +791,9 @@ describe('settings routes', () => {
     expect(state.hasToken).toBe(true);
     expect(state.tokenSource).toBe('settings');
     expect(state.live).toEqual({ tools: 29 });
+    // The override is filtered to the visible fields, so a secret saved from
+    // the page never leaves the Host through /state.
+    expect(state.override).toEqual({ writes: true });
 
     expect(routes.readState({
       editor: undefined, env: {}, liveStatus: () => ({}), logger: { warn: () => {} },
