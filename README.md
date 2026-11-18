@@ -54,11 +54,11 @@ Then add **this directory** as the plugin (local directory install). Do not add 
 
 ## Configure
 
-Open **Settings → Confluence** — the page this bundle contributes:
+Open **Settings → Confluence** — the page this bundle contributes. Three values are enough to start: **site URL**, the **email** you sign in with (Cloud), and an **API token**. For Server 6.x without PAT, use **username** + **password** with `basic` auth instead. The host name and REST base path are derived from the site URL; fill them only to override the derivation.
 
 | Area | Fields |
 |---|---|
-| Site and authentication | Site URL, host name (optional), API base path, authentication (`basic`/`bearer`), email, CLI profile, API token |
+| Site and authentication | Site URL, host name (optional), API base path, authentication (`basic`/`bearer`), email, username, CLI profile, API token |
 | Write access | Register write tools, allowed space keys, approval mode |
 | Current runtime | Registered tool count, allowed spaces, approval mode, CLI root |
 
@@ -84,7 +84,7 @@ The same row can be written by hand:
 
 | Key | Default | Meaning |
 |---|---|---|
-| `siteUrl` / `domain` | — | The site, as a full URL or a bare host name. |
+| `siteUrl` / `domain` | — | The site, as a full URL or a bare host name. A site URL alone is enough: the host name and REST base path are derived from it. |
 | `apiPath` | — | `/wiki/rest/api` on Cloud, `/rest/api` on Server/Data Center. |
 | `authType` | `basic` | `basic` (email + API token) or `bearer` (Data Center personal access token). |
 | `email` / `username` | — | Identity for `basic`. |

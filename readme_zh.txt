@@ -117,14 +117,18 @@ JSON 输出都沿用 CLI 的行为，插件本身不重复实现 Confluence API�
 
 打开「设置 → Confluence」，页面上有三组内容：
 
+   最少只需要三项：站点地址 + 登录邮箱（Cloud）+ API token。Server 6.x 无 PAT，
+   改用用户名 + 密码（basic 认证）。主机名与 API 基路径会从站点地址自动推导。
+
    站点与认证
        站点地址            例如 https://company.atlassian.net/wiki
-       主机名（可选）      例如 company.atlassian.net；与站点地址二选一
-       API 基路径          Cloud 用 /wiki/rest/api，Server/DC 用 /rest/api
-       认证方式            basic（邮箱 + API token）或 bearer（DC personal token）
-       登录邮箱            basic 认证必填
+       主机名（可选）      例如 company.atlassian.net；留空时由站点地址推出
+       API 基路径          留空时推导：Cloud /wiki/rest/api，Server/DC /rest/api
+       认证方式            basic（邮箱/用户名 + 密码或 token）或 bearer（7.9+ PAT）
+       登录邮箱            Cloud 或用邮箱登录的 Server 填此项
+       用户名              Server 6.x 用用户名登录时填此项，与邮箱二选一
        CLI 配置名          对应 confluence-cli 的命名 profile，可留空
-       API token           密码框；只回显「已保存 / 未设置」，可一键清除
+       API token           密码框；basic 时填密码，bearer 时填 PAT；只回显「已保存/未设置」
 
    写入权限
        注册写工具          开关；关闭时只有 13 个只读工具

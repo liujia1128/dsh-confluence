@@ -95,13 +95,15 @@ node scripts/install-offline.mjs     # 校验 deps/node_modules.tar.gz 并解压
 
 装完还需要填站点与 token（设置页或 YAML），否则调用会返回 CLI 的「未找到配置」错误。
 
+最少只要三项：**站点地址**、登录**邮箱**（Cloud）、**API token**。主机名与 REST 基路径会从站点地址自动推导，只有需要覆盖推导结果时才填它们。
+
 ## 设置页
 
 打开 **设置 → Confluence**：
 
 | 分组 | 字段 |
 |---|---|
-| 站点与认证 | 站点地址、主机名（可选）、API 基路径、认证方式（`basic` / `bearer`）、登录邮箱、CLI 配置名、API token |
+| 站点与认证 | 站点地址、主机名（可选）、API 基路径、认证方式（`basic` / `bearer`）、登录邮箱、用户名、CLI 配置名、API token |
 | 写入权限 | 注册写工具开关、允许的空间 key、审批方式（`ask` / `never`） |
 | 当前运行状态 | 已注册工具数、允许空间、审批方式、CLI 目录 |
 
@@ -135,7 +137,7 @@ node scripts/install-offline.mjs     # 校验 deps/node_modules.tar.gz 并解压
 
 | 键 | 默认值 | 说明 |
 |---|---|---|
-| `siteUrl` / `domain` | — | 站点地址或主机名，二选一 |
+| `siteUrl` / `domain` | — | 站点地址或主机名，二选一；只填站点地址即可，主机名与 REST 基路径会从它推导 |
 | `apiPath` | — | Cloud 用 `/wiki/rest/api`，Server/DC 用 `/rest/api` |
 | `authType` | `basic` | `basic`（邮箱 + API token）或 `bearer`（DC personal token） |
 | `email` / `username` | — | `basic` 认证的身份 |

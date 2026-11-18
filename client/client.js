@@ -342,8 +342,8 @@ window.__ModuleLoader__.load({
         h('div', { style: styles.group },
           h('div', { style: styles.groupTitle }, t('站点与认证', 'Site and authentication')),
           h('p', { style: styles.groupHint },
-            t('Cloud 实例填 https://<site>.atlassian.net/wiki；Server/Data Center 填 https://confluence.example.com。',
-              'For Cloud use https://<site>.atlassian.net/wiki; for Server/Data Center use https://confluence.example.com.')),
+            t('Cloud 填 https://<site>.atlassian.net/wiki；Server/Data Center 填 http://内网地址:端口。6.x 无 PAT，用用户名 + 密码（basic 认证）。',
+              'For Cloud use https://<site>.atlassian.net/wiki; for Server/Data Center use http://host:port. Server 6.x has no PAT — use username + password with basic auth.')),
           h(Field, {
             id: 'confluence-site-url', label: t('站点地址', 'Site URL'),
             value: form.siteUrl, onChange: update('siteUrl'),
@@ -354,21 +354,21 @@ window.__ModuleLoader__.load({
               id: 'confluence-domain', label: t('主机名（可选）', 'Host name (optional)'),
               value: form.domain, onChange: update('domain'),
               placeholder: 'company.atlassian.net',
-              hint: t('与站点地址二选一；留空表示用站点地址推导。', 'Use either this or the site URL; empty derives it from the URL.'),
+              hint: t('留空时由站点地址推出主机名。', 'Empty derives the host name from the site URL.'),
             })),
             h('div', { style: { flex: 2 } }, h(Field, {
               id: 'confluence-api-path', label: t('API 基路径', 'API base path'),
               value: form.apiPath, onChange: update('apiPath'),
               placeholder: '/wiki/rest/api',
-              hint: t('Cloud 用 /wiki/rest/api，Server/DC 用 /rest/api。', 'Cloud: /wiki/rest/api. Server/DC: /rest/api.'),
+              hint: t('留空时推导：Cloud 为 /wiki/rest/api，Server/DC 为 /rest/api。', 'Empty derives it: /wiki/rest/api on Cloud, /rest/api on Server/DC.'),
             })),
           ),
           h(Select, {
             id: 'confluence-auth-type', label: t('认证方式', 'Authentication'),
             value: form.authType, onChange: update('authType'),
             options: [
-              { value: 'basic', label: t('basic — 邮箱 + API token', 'basic — email + API token') },
-              { value: 'bearer', label: t('bearer — personal access token', 'bearer — personal access token') },
+              { value: 'basic', label: t('basic — 邮箱/用户名 + 密码或 token', 'basic — email/username + password or token') },
+              { value: 'bearer', label: t('bearer — personal access token (7.9+)', 'bearer — personal access token (7.9+)') },
             ],
           }),
           h('div', { style: styles.pair },
@@ -376,13 +376,21 @@ window.__ModuleLoader__.load({
               id: 'confluence-email', label: t('登录邮箱', 'Email'),
               value: form.email, onChange: update('email'),
               placeholder: 'you@company.com',
-              hint: t('basic 认证必填；bearer 认证留空。', 'Required for basic; leave empty for bearer.'),
+              hint: t('Cloud 或 Server 用邮箱登录时填此项。', 'For Cloud or Server instances that use email login.'),
             })),
             h('div', { style: { flex: 1 } }, h(Field, {
+              id: 'confluence-username', label: t('用户名', 'Username'),
+              value: form.username, onChange: update('username'),
+              placeholder: 'zhangsan',
+              hint: t('Server 6.x 用用户名登录时填此项，与邮箱二选一。', 'For Server 6.x using username login; use either this or email.'),
+            })),
+          ),
+          h('div', { style: styles.field },
+            h(Field, {
               id: 'confluence-profile', label: t('CLI 配置名（可选）', 'CLI profile (optional)'),
               value: form.profile, onChange: update('profile'),
               placeholder: 'default',
-            })),
+            }),
           ),
           h('div', { style: styles.field },
             h('label', { style: styles.label, htmlFor: 'confluence-token' },
@@ -394,7 +402,9 @@ window.__ModuleLoader__.load({
               h('input', {
                 id: 'confluence-token', type: 'password', value: tokenDraft,
                 placeholder: hasToken ? t('已保存，留空表示不修改', 'Stored — leave empty to keep it')
-                  : t('粘贴 API token 或 personal access token', 'Paste an API token or personal access token'),
+                  : form.authType === 'bearer'
+                    ? t('粘贴 personal access token', 'Paste a personal access token')
+                    : t('Cloud 填 API token；Server 6.x 填登录密码', 'Cloud: API token; Server 6.x: login password'),
                 onChange: (event) => setTokenDraft(event.target.value),
                 autoComplete: 'new-password', spellCheck: false, style: styles.input,
               }),
@@ -406,8 +416,8 @@ window.__ModuleLoader__.load({
                 : null,
             ),
             h('p', { style: styles.hint },
-              t('token 保存在本机 settings.yaml 的用户层，读取时按 secret 字段回显（只显示是否已设置）。也可以改用环境变量 CONFLUENCE_API_TOKEN，避免落盘。',
-                'The token is stored in this machine\'s settings.yaml user layer and echoed back as a redacted secret (only whether it is set). You can use CONFLUENCE_API_TOKEN instead to keep it off disk.')),
+              t('token 保存在本机 settings.yaml 的用户层，读取时按 secret 字段回显（只显示是否已设置）。basic 认证时此处填密码；bearer 认证时填 PAT。也可以改用环境变量 CONFLUENCE_API_TOKEN，避免落盘。',
+                'The token is stored in this machine\'s settings.yaml user layer and echoed back as a redacted secret (only whether it is set). For basic auth this is the password; for bearer, the PAT. You can use CONFLUENCE_API_TOKEN instead to keep it off disk.')),
           ),
         ),
 

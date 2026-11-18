@@ -205,6 +205,31 @@ describe('configuration', () => {
     expect(config.cliEnv.CONFLUENCE_DOMAIN).toBe('nested.example.com');
   });
 
+  test('derives the host name and API path from a site URL', () => {
+    const cloud = resolveConfig({ siteUrl: 'https://company.atlassian.net/wiki', token: 't' }, {}, engine);
+    expect(cloud.cliEnv.CONFLUENCE_DOMAIN).toBe('company.atlassian.net');
+    expect(cloud.cliEnv.CONFLUENCE_API_PATH).toBe('/wiki/rest/api');
+
+    // No path in the URL: the CLI infers /rest/api from a non-Cloud host.
+    const dataCenter = resolveConfig({ siteUrl: 'https://confluence.example.com', token: 't' }, {}, engine);
+    expect(dataCenter.cliEnv.CONFLUENCE_DOMAIN).toBe('confluence.example.com');
+    expect(dataCenter.cliEnv.CONFLUENCE_API_PATH).toBeUndefined();
+
+    const scoped = resolveConfig({
+      siteUrl: 'https://api.atlassian.com/ex/confluence/abc123/wiki', token: 't',
+    }, {}, engine);
+    expect(scoped.cliEnv.CONFLUENCE_API_PATH).toBe('/ex/confluence/abc123/wiki/rest/api');
+
+    const explicit = resolveConfig({
+      siteUrl: 'https://x.example.com/wiki', domain: 'y.example.com', apiPath: '/custom/rest/api',
+    }, {}, engine);
+    expect(explicit.cliEnv.CONFLUENCE_DOMAIN).toBe('y.example.com');
+    expect(explicit.cliEnv.CONFLUENCE_API_PATH).toBe('/custom/rest/api');
+
+    const unparsable = resolveConfig({ siteUrl: 'not a url', token: 't' }, {}, engine);
+    expect(unparsable.cliEnv.CONFLUENCE_DOMAIN).toBeUndefined();
+  });
+
   test('accepts never as the approval mode and a custom preflight ttl', () => {
     const config = resolveConfig({ confirm: 'never', preflightTtlMs: 1000 }, {}, engine);
     expect(config.confirm).toBe('never');

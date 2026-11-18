@@ -78,6 +78,7 @@ The bundle contributes one page to **Settings**, between Fonts and Market: `Conf
 | Current runtime | Registered tool count, allowed spaces, approval mode, CLI root |
 
 - **Storage.** Saving writes the `confluence` row of *this profile's* `cordis.patch.yml` through `configEditor` — the same row the bundle inserts — and the loader reconciles it immediately, so the tool set changes without a restart. Blanked text fields are removed from the row rather than stored as empty strings.
+- **Derivation.** A site URL is enough: the plugin derives the CLI's `CONFLUENCE_DOMAIN` from its host, and `CONFLUENCE_API_PATH` from its path (`/wiki` → `/wiki/rest/api`, `/ex/confluence/<id>/wiki` → the same plus `/rest/api`). An explicit host name or API path always wins; a URL without a path leaves the base path to the CLI's own inference from the host.
 - **Token.** The token is stored in that row like any other field; the page only ever shows whether one is set. Prefer `CONFLUENCE_API_TOKEN` in the environment if the token must not live in the patch file.
 - **Precedence.** Page values win over `CONFLUENCE_*` environment variables for the same field; a field left empty falls back to the environment, `confluence init`'s profile, the Keychain, or `~/.netrc`.
 - **Test connection.** Runs one `spaces --limit 1` read with the values in force and reports the space count or the CLI's own error, so a wrong domain or token is visible before the first real call.
