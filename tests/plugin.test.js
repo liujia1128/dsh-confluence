@@ -230,6 +230,30 @@ describe('configuration', () => {
     expect(unparsable.cliEnv.CONFLUENCE_DOMAIN).toBeUndefined();
   });
 
+  test('keeps the site URL port and protocol so an http Server/DC is reachable', () => {
+    // url.hostname would drop :8090 and the CLI would dial 9.1.13.165:443.
+    const selfHosted = resolveConfig({ siteUrl: 'http://9.1.13.165:8090/', token: 't' }, {}, engine);
+    expect(selfHosted.cliEnv.CONFLUENCE_DOMAIN).toBe('9.1.13.165:8090');
+    expect(selfHosted.cliEnv.CONFLUENCE_PROTOCOL).toBe('http');
+    expect(selfHosted.cliEnv.CONFLUENCE_ALLOW_INSECURE_HTTP).toBe('true');
+    expect(selfHosted.cliEnv.CONFLUENCE_API_PATH).toBeUndefined();
+
+    // An https origin keeps its scheme and needs no insecure opt-in.
+    const secure = resolveConfig({ siteUrl: 'https://conf.example.com:8443/wiki', token: 't' }, {}, engine);
+    expect(secure.cliEnv.CONFLUENCE_DOMAIN).toBe('conf.example.com:8443');
+    expect(secure.cliEnv.CONFLUENCE_PROTOCOL).toBe('https');
+    expect(secure.cliEnv.CONFLUENCE_ALLOW_INSECURE_HTTP).toBeUndefined();
+    expect(secure.cliEnv.CONFLUENCE_API_PATH).toBe('/wiki/rest/api');
+
+    // Explicit values still win over the derivation.
+    const explicit = resolveConfig({
+      siteUrl: 'http://10.0.0.5:8090/', domain: 'proxy.example.com', protocol: 'https',
+    }, {}, engine);
+    expect(explicit.cliEnv.CONFLUENCE_DOMAIN).toBe('proxy.example.com');
+    expect(explicit.cliEnv.CONFLUENCE_PROTOCOL).toBe('https');
+    expect(explicit.cliEnv.CONFLUENCE_ALLOW_INSECURE_HTTP).toBeUndefined();
+  });
+
   test('accepts never as the approval mode and a custom preflight ttl', () => {
     const config = resolveConfig({ confirm: 'never', preflightTtlMs: 1000 }, {}, engine);
     expect(config.confirm).toBe('never');

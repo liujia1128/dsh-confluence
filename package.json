@@ -1,6 +1,6 @@
 {
   "name": "dsh-plugin-confluence",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "description": "Confluence pages, comments, attachments, and properties as typed DeepSeek Harness tools, with a settings page for the connection and write policy.",
   "type": "module",
   "main": "index.js",
