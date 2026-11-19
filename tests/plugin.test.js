@@ -5,7 +5,7 @@ const os = require('os');
 const path = require('path');
 
 const { validateArguments } = require('../lib/args.cjs');
-const { asBoolean, normalizeSpaces, resolveConfig } = require('../lib/config.cjs');
+const { asBoolean, findNodeExecutable, normalizeSpaces, resolveConfig } = require('../lib/config.cjs');
 const { isCliPackageRoot, loadEngine, resolvePackageRoot } = require('../lib/engine.cjs');
 const { TEXT_OUTPUT_SCHEMA, TOOL_SPECS, buildToolDefinitions } = require('../lib/tools.cjs');
 const plugin = require('../lib/plugin.cjs');
@@ -242,6 +242,62 @@ describe('configuration', () => {
     expect(asBoolean(undefined)).toBeUndefined();
     expect([...normalizeSpaces('a, b').spaces]).toEqual(['A', 'B']);
     expect(normalizeSpaces(['A?']).valid).toBe(false);
+  });
+
+  test('prefers a real Node runtime over the Electron host', () => {
+    const electronHost = {
+      platform: 'win32',
+      execPath: 'C:\\apps\\DSH\\DeepSeek Harness.exe',
+      versions: { electron: '36.0.0' },
+    };
+    const notes = [];
+    const shipped = path.join(workspace, 'runtime', 'node.exe');
+    fs.mkdirSync(path.dirname(shipped), { recursive: true });
+    fs.writeFileSync(shipped, '');
+
+    // Explicit nodePath wins over everything.
+    const explicit = findNodeExecutable({ nodePath: 'C:\\node\\node.exe' }, {}, undefined, notes, electronHost);
+    expect(explicit).toEqual({ execPath: 'C:\\node\\node.exe', source: 'config' });
+
+    // The plugin-shipped runtime/node.exe beats the DSH-bundled and Electron ones.
+    const plugin = findNodeExecutable({}, {}, workspace, notes, electronHost);
+    expect(plugin).toEqual({ execPath: shipped, source: 'plugin' });
+
+    // Without the shipped binary, the DSH-bundled node is chosen when it exists.
+    const tempHost = {
+      platform: 'win32',
+      execPath: path.join(workspace, 'host', 'DeepSeek Harness.exe'),
+      versions: { electron: '36.0.0' },
+    };
+    const dshNode = path.join(workspace, 'host', 'resources', 'runtime', 'primary-runtime', 'dependencies', 'node', 'bin', 'node.exe');
+    fs.mkdirSync(path.dirname(dshNode), { recursive: true });
+    fs.writeFileSync(dshNode, '');
+    const dsh = findNodeExecutable({}, {}, undefined, notes, tempHost);
+    expect(dsh).toEqual({ execPath: dshNode, source: 'dsh' });
+
+    // A plain-Node host (tests, `dsh web`) keeps its own executable.
+    const plain = findNodeExecutable({}, {}, undefined, notes, { platform: 'win32', execPath: 'C:\\node\\node.exe', versions: {} });
+    expect(plain.execPath).toBe('C:\\node\\node.exe');
+
+    expect(notes.some(note => note.includes('plugin-shipped Node runtime'))).toBe(true);
+    expect(notes.some(note => note.includes('Node runtime bundled with this DSH installation'))).toBe(true);
+  });
+
+  test('translates the Electron GUI-mode failure into an actionable fix', () => {
+    const guiError = {
+      code: 'INVALID_JSON',
+      message: 'Confluence CLI returned invalid JSON: Unexpected end of JSON input',
+      stdout: '',
+      stderr: '[16512:1119/105506.873:ERROR:net\\disk_cache\\cache_util_win.cc:25] Unable to move the cache\n'
+        + '[16512:1119/105506.890:ERROR:gpu\\ipc\\host\\gpu_disk_cache.cc:737] Gpu Cache Creation failed: -2',
+    };
+    const translated = plugin.translateRunFailure(guiError);
+    expect(translated.message).toMatch(/ELECTRON_RUN_AS_NODE/);
+    expect(translated.message).toMatch(/nodePath/);
+
+    // A genuine JSON error from a working CLI run stays untouched.
+    const realError = { code: 'INVALID_JSON', message: 'Confluence CLI returned invalid JSON: oops', stdout: 'not json', stderr: '' };
+    expect(plugin.translateRunFailure(realError).message).toBe(realError.message);
   });
 });
 

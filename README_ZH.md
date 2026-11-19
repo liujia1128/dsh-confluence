@@ -148,7 +148,7 @@ node scripts/install-offline.mjs     # 校验 deps/node_modules.tar.gz 并解压
 | `confirm` | `ask` | `ask` 每次写都请求审批；`never` 跳过 |
 | `preflightTtlMs` | `300000` | 批量 approvalId 的有效期（毫秒） |
 | `packageRoot` | 自动 | 指定某一份 confluence-cli 目录 |
-| `nodePath` | DSH 运行时 | 执行 CLI 使用的 Node 可执行文件 |
+| `nodePath` | 自动发现 | 执行 CLI 使用的 Node 可执行文件。自动发现顺序：插件目录 `runtime/node.exe` → DSH 安装自带的 Node（`resources/runtime/primary-runtime/…/node/bin`）→ DSH 主程序（Electron，配 `ELECTRON_RUN_AS_NODE=1`）。某些打包版 Electron 拒绝以 Node 模式启动（测试连接报 `INVALID_JSON` 且 stderr 出现 Chromium 缓存错误），此时把 `nodePath` 指到真实 node.exe 即可 |
 | `skill` | `true` | 是否注册 `confluence` 技能 |
 
 `CONFLUENCE_READ_ONLY=true` 始终优先：写工具不会注册。

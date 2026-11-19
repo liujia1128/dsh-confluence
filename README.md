@@ -95,7 +95,7 @@ The same row can be written by hand:
 | `confirm` | `ask` | `ask` routes every write through the harness approval channel; `never` skips it. |
 | `preflightTtlMs` | `300000` | Lifetime of a bulk approval id. |
 | `packageRoot` | auto | confluence-cli package directory, when you want a specific copy. |
-| `nodePath` | DSH runtime | JavaScript runtime used for the CLI child process. |
+| `nodePath` | auto-discovered | JavaScript runtime used for the CLI child process. Discovery order: the plugin-shipped `runtime/node(.exe)`, the Node bundled with the DSH installation (`resources/runtime/primary-runtime/…/node/bin`), then the DSH Electron binary with `ELECTRON_RUN_AS_NODE=1`. Some packaged Electron builds refuse Node mode (test connection reports `INVALID_JSON` with Chromium cache errors on stderr); point `nodePath` at a real node.exe |
 | `skill` | `true` | Register the `confluence` skill. |
 
 `CONFLUENCE_READ_ONLY=true` always wins: the write tools are not registered.
