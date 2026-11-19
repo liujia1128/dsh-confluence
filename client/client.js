@@ -120,20 +120,20 @@ window.__ModuleLoader__.load({
 
     const FIELDS = [
       'siteUrl', 'domain', 'apiPath', 'authType', 'email', 'username',
-      'profile', 'writes', 'spaces', 'confirm',
+      'profile', 'nodePath', 'packageRoot', 'writes', 'spaces', 'confirm',
     ];
 
     function blankForm() {
       return {
         siteUrl: '', domain: '', apiPath: '', authType: 'basic', email: '', username: '',
-        profile: '', writes: false, spaces: '', confirm: 'ask',
+        profile: '', nodePath: '', packageRoot: '', writes: false, spaces: '', confirm: 'ask',
       };
     }
 
     function formFromState(state) {
       const stored = state && typeof state.stored === 'object' && state.stored !== null ? state.stored : {};
       const form = blankForm();
-      for (const key of ['siteUrl', 'domain', 'apiPath', 'email', 'username', 'profile']) {
+      for (const key of ['siteUrl', 'domain', 'apiPath', 'email', 'username', 'profile', 'nodePath', 'packageRoot']) {
         if (typeof stored[key] === 'string') form[key] = stored[key];
       }
       if (AUTH_TYPES.includes(stored.authType)) form.authType = stored.authType;
@@ -392,6 +392,24 @@ window.__ModuleLoader__.load({
               id: 'confluence-profile', label: t('CLI 配置名（可选）', 'CLI profile (optional)'),
               value: form.profile, onChange: update('profile'),
               placeholder: 'default',
+            }),
+          ),
+          h('div', { style: styles.twoCol },
+            h(Field, {
+              id: 'confluence-nodepath', label: t('Node 可执行文件（可选）', 'Node executable (optional)'),
+              value: form.nodePath, onChange: update('nodePath'),
+              placeholder: t('C:\\node\\node.exe（留空自动发现）', 'C:\\node\\node.exe (auto-discovered when empty)'),
+              hint: t(
+                '执行 CLI 的 Node。留空时依次用：插件目录 runtime\\node.exe → DSH 自带 Node → Electron。'
+                + '测试连接报 INVALID_JSON 且 stderr 有 Chromium 缓存错误时，填真实 node.exe 的绝对路径。',
+                'Node that runs the CLI. Empty: plugin runtime\\node.exe, then the DSH-bundled Node, then Electron. '
+                + 'If test connection reports INVALID_JSON with Chromium cache errors, set a real node.exe path.'),
+            }),
+            h(Field, {
+              id: 'confluence-packageroot', label: t('confluence-cli 目录（可选）', 'confluence-cli directory (optional)'),
+              value: form.packageRoot, onChange: update('packageRoot'),
+              placeholder: t('D:\\tools\\confluence-cli（留空用自带依赖）', 'D:\\tools\\confluence-cli (bundled deps when empty)'),
+              hint: t('留空时用插件自带依赖；指向源码检出时可调试 CLI 本身。', 'Empty uses the bundled dependencies; point at a checkout to debug the CLI itself.'),
             }),
           ),
           h('div', { style: styles.field },
