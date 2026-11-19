@@ -7,15 +7,18 @@
  * the single source of truth for authentication, rate limiting, conversion,
  * and JSON envelopes.
  *
- * `tools` is a hard dependency; `approval`, `skills`, `workingDirectory`,
- * `settings`, and `webServer` are consumed opportunistically so the bundle
- * still activates in profiles that compose fewer services.
+ * `tools` and `connection` are hard dependencies; `approval`, `skills`,
+ * `workingDirectory`, `settings`, and `webServer` are consumed opportunistically
+ * so the bundle still activates in profiles that compose fewer of them.
+ * `connection` gates the settings routes behind the composition's own
+ * Host/Origin fence and browser authentication (`requestRejection`), the same
+ * trust surface every shipped route runs behind.
  */
 import z from '@deepseek-ai/schemastery';
 import plugin from './lib/plugin.cjs';
 
 export const name = 'confluence';
-export const inject = ['tools'];
+export const inject = ['tools', 'connection'];
 
 /**
  * The settings page's editable fields. Declaring the schema gives the plugin a

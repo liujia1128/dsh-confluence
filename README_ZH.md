@@ -113,7 +113,7 @@ node scripts/install-offline.mjs     # 校验 deps/node_modules.tar.gz 并解压
 - 清空的文本框会从那一行**删除**，而不是写入空字符串。
 - **测试连接**真实执行一次 `spaces --limit 1`，成功显示空间数，失败显示 CLI 原始错误 —— 域名写错或 token 失效在正式调用前就能发现。
 - token 存在那一行里，页面只回显「已保存 / 未设置」；不想落盘就改用环境变量 `CONFLUENCE_API_TOKEN`。
-- 页面与 Host 之间的三条同源路由（`/dsh-confluence/state`、`/save`、`/test`）都要求页面自带的 `x-dsh-confluence` 请求头 + 本机 Host，带 `Origin` 时必须同源。
+- 页面与 Host 之间的三条同源路由（`/dsh-confluence/state`、`/save`、`/test`）先经过 DSH `connection` 服务的准入检查（`requestRejection`：Host/Origin 防线 + 浏览器登录态，与官方路由同一道门），再要求页面自带的 `x-dsh-confluence` 请求头 + 本机 Host，带 `Origin` 时必须同源。
 
 ## YAML 配置（与设置页等价）
 

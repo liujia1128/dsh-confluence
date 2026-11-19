@@ -82,7 +82,7 @@ The bundle contributes one page to **Settings**, between Fonts and Market: `Conf
 - **Token.** The token is stored in that row like any other field; the page only ever shows whether one is set. Prefer `CONFLUENCE_API_TOKEN` in the environment if the token must not live in the patch file.
 - **Precedence.** Page values win over `CONFLUENCE_*` environment variables for the same field; a field left empty falls back to the environment, `confluence init`'s profile, the Keychain, or `~/.netrc`.
 - **Test connection.** Runs one `spaces --limit 1` read with the values in force and reports the space count or the CLI's own error, so a wrong domain or token is visible before the first real call.
-- **Transport.** The page talks to the Host over three same-origin routes under `/dsh-confluence` (`state`, `save`, `test`). Every route requires the page's own `x-dsh-confluence` header and a loopback `Host`, and refuses a mismatched `Origin`, so a cross-site page cannot drive it.
+- **Transport.** The page talks to the Host over three same-origin routes under `/dsh-confluence` (`state`, `save`, `test`). Every route first asks the composition's `connection` service for a rejection (`requestRejection`: the Host/Origin fence plus browser authentication the shipped routes run behind), then requires the page's own `x-dsh-confluence` header and a loopback `Host`, and refuses a mismatched `Origin`, so a cross-site page cannot drive it.
 
 ## Requirements and limits
 

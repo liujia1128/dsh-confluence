@@ -801,6 +801,76 @@ describe('settings routes', () => {
   });
 });
 
+describe('settings route guard', () => {
+  const routes = require('../lib/settings-route.cjs');
+
+  /** Mount the routes against a fake webServer; returns the captured /state handler. */
+  function mount(deps) {
+    const registered = [];
+    const ctx = { get: key => (key === 'webServer' ? { register: route => registered.push(route) && (() => {}) } : undefined) };
+    const dispose = routes.createSettingsServer({ ctx, logger: { warn: () => {} }, liveStatus: () => ({ tools: 0 }), ...deps });
+    return { registered, dispose };
+  }
+
+  function makeResponse() {
+    return { writableEnded: false, destroyed: false, statusCode: 0, headers: null, body: null,
+      writeHead(status, headers) { this.statusCode = status; this.headers = headers; },
+      end(body) { this.writableEnded = true; if (body !== undefined) this.body = body; } };
+  }
+
+  const goodRequest = { method: 'GET', headers: { 'x-dsh-confluence': '1', host: '127.0.0.1:62851' } };
+
+  test('asks the composition connection for a rejection before anything else', () => {
+    const calls = [];
+    const connection = { requestRejection: (request) => { calls.push(request); return 401; } };
+    const { registered } = mount({ connection });
+    const state = registered.find(route => route.path === '/dsh-confluence/state');
+    const response = makeResponse();
+    state.handler(goodRequest, response);
+
+    expect(calls).toEqual([goodRequest]);
+    expect(response.statusCode).toBe(401);
+    expect(response.writableEnded).toBe(true);
+    expect(response.headers).toBeNull();
+    expect(response.body).toBeNull();
+  });
+
+  test('admitted requests fall through to the plugin fence', () => {
+    const connection = { requestRejection: () => undefined };
+    const { registered } = mount({ connection, editor: undefined });
+    const state = registered.find(route => route.path === '/dsh-confluence/state');
+
+    const admitted = makeResponse();
+    state.handler(goodRequest, admitted);
+    expect(admitted.statusCode).toBe(200);
+    expect(JSON.parse(admitted.body).status).toBe('ok');
+
+    const unheaded = makeResponse();
+    state.handler({ method: 'GET', headers: { host: '127.0.0.1:62851' } }, unheaded);
+    expect(unheaded.statusCode).toBe(403);
+  });
+
+  test('without a connection service the plugin fence still gates every route', () => {
+    const { registered } = mount({ connection: undefined, editor: undefined });
+    const state = registered.find(route => route.path === '/dsh-confluence/state');
+
+    const refused = makeResponse();
+    state.handler({ method: 'GET', headers: { host: 'evil.example.com' } }, refused);
+    expect(refused.statusCode).toBe(403);
+
+    const admitted = makeResponse();
+    state.handler(goodRequest, admitted);
+    expect(admitted.statusCode).toBe(200);
+  });
+
+  test('connectionRejection tolerates a malformed service', () => {
+    expect(routes.connectionRejection(undefined, goodRequest)).toBeUndefined();
+    expect(routes.connectionRejection(null, goodRequest)).toBeUndefined();
+    expect(routes.connectionRejection({}, goodRequest)).toBeUndefined();
+    expect(routes.connectionRejection({ requestRejection: () => 403 }, goodRequest)).toBe(403);
+  });
+});
+
 describe('client half', () => {
   const source = fs.readFileSync(path.join(DSH_ROOT, 'client', 'client.js'), 'utf8');
 

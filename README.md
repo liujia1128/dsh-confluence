@@ -118,7 +118,7 @@ A wrong or missing candidate fails loudly at activation with instructions, rathe
 3. Bulk writes are preview → execute: the execution re-runs preflight, rejects a changed plan with `STALE_PREFLIGHT`, and asks for approval again.
 4. Files touched by a write (body, property, attachment uploads) are hashed before approval and re-hashed after it (`STALE_FILE`); local paths must stay inside the session working directory.
 5. A write that times out or is interrupted fails as `UNKNOWN_RESULT` and is never retried automatically.
-6. The Settings API is three same-origin routes under `/dsh-confluence`; each requires the page's own `x-dsh-confluence` header and a loopback `Host`, and refuses a mismatched `Origin`.
+6. The Settings API is three same-origin routes under `/dsh-confluence`; each asks the composition's `connection` service for a rejection first (`requestRejection`: the Host/Origin fence plus browser authentication every shipped route runs behind), then requires the page's own `x-dsh-confluence` header and a loopback `Host`, and refuses a mismatched `Origin`.
 
 ## Development
 
