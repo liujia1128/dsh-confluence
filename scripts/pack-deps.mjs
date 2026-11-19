@@ -22,7 +22,14 @@ const archive = path.join(depsDir, 'node_modules.tar.gz');
 const checksum = path.join(depsDir, 'node_modules.sha256');
 
 function run(command, args, options = {}) {
-  const result = spawnSync(command, args, { stdio: 'inherit', ...options });
+  // On Windows `npm` is a .cmd shim that spawnSync cannot resolve from a
+  // bare name (EINVAL); run it through the Node CLI entry instead.
+  const node = process.execPath;
+  const npmCli = path.join(path.dirname(node), 'node_modules', 'npm', 'bin', 'npm-cli.js');
+  const resolved = process.platform === 'win32' && command === 'npm' && fs.existsSync(npmCli)
+    ? { command: node, args: [npmCli, ...args] }
+    : { command, args };
+  const result = spawnSync(resolved.command, resolved.args, { stdio: 'inherit', ...options });
   if (result.error !== undefined) {
     throw new Error(`${command} could not start: ${result.error.message}`);
   }
@@ -45,6 +52,20 @@ try {
   run('npm', ['ci', '--omit=dev', '--ignore-scripts', '--no-audit', '--no-fund'], { cwd: work });
 
   console.log('archiving…');
+
+  // Patch the bundled CLI copy with this plugin's vendored command runner:
+  // the npm-published confluence-cli ignores `execPath` and always spawns
+  // `process.execPath`, which breaks the CLI child on packaged Electron
+  // hosts. The vendored runner honours it. The plugin also loads the
+  // vendored copy directly; this keeps the shipped node_modules consistent.
+  const vendored = path.join(root, 'lib', 'runner', 'command-runner.cjs');
+  if (fs.existsSync(vendored)) {
+    const target = path.join(work, 'node_modules', 'confluence-cli', 'lib', 'pi', 'command-runner.js');
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.copyFileSync(vendored, target);
+    console.log('patched node_modules/confluence-cli with the vendored command runner');
+  }
+
   run('tar', ['-czf', 'node_modules.tar.gz', 'node_modules'], { cwd: work });
 
   fs.mkdirSync(depsDir, { recursive: true });

@@ -299,6 +299,20 @@ describe('configuration', () => {
     const realError = { code: 'INVALID_JSON', message: 'Confluence CLI returned invalid JSON: oops', stdout: 'not json', stderr: '' };
     expect(plugin.translateRunFailure(realError).message).toBe(realError.message);
   });
+
+  test('loads the vendored command runner that honours execPath', () => {
+    // The npm-published confluence-cli spawns process.execPath and ignores
+    // execPath; the vendored copy in lib/runner must be the one loaded.
+    const vendored = path.join(DSH_ROOT, 'lib', 'runner', 'command-runner.cjs');
+    expect(fs.existsSync(vendored)).toBe(true);
+    expect(engine.runner).toBeDefined();
+    expect(typeof engine.runner.resolveExecPath).toBe('function');
+    expect(engine.runner.resolveExecPath('C:\\custom\\node.exe')).toBe('C:\\custom\\node.exe');
+    expect(engine.runner.resolveExecPath('')).toBe(process.execPath);
+    expect(engine.runner.resolveExecPath(undefined)).toBe(process.execPath);
+    // Module identity: the loaded runner is the vendored copy, not the CLI package's.
+    expect(engine.runner).toBe(require(vendored));
+  });
 });
 
 describe('tool surface', () => {
